@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3 Graphic</title>
+		<style type="text/css"></style>
+		<script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+		<style>
+
+   
+.select{
+		position : absolute;
+		left : 820px;
+		width : 75px;
+	    top : 50px;}
+		body { font: 12px Arial;}
+ 
+.path { 
+  stroke: steelblue;
+  stroke-width: 5;
+  fill: none;
+}
+ 
+.axis path,
+.axis line {
+	fill: none;
+	stroke: grey;
+	stroke-width: 2;
+	shape-rendering: crispEdges;
+}
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 2px;
+}
+
+div.tooltip {
+  position: absolute;
+  text-align: center;
+  width: 60px;
+  height: 28px;
+  padding: 2px;
+  font: 12px sans-serif;
+  background: lightsteelblue;
+  border: 0px;
+  border-radius: 8px;
+  pointer-events: none;
+}
+rect:hover {
+				fill: orange;
+			}
+			
+			#tooltip {
+				position: absolute;
+				width: 200px;
+				height: auto;
+				padding: 10px;
+				background-color: white;
+				-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				-webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+				-moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+				box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+				pointer-events: none;
+			}
+			
+			#tooltip.hidden {
+				display: none;
+			}
+			
+			#tooltip p {
+				margin: 0;
+				font-family: sans-serif;
+				font-size: 16px;
+				line-height: 20px;
+			}
+			
+	h2 {
+  position: absolute;
+  top: 0;
+  text-align: center;
+}
+
+		</style>
+		
+<div id="area1" ></div>
+<div id="area2"></div>
+<div id="area3"></div>
+<div id="area4"></div>
+		
+	</head>
+	<body>
+	
+		<div id="tooltip" class="hidden">	
+			<p><strong>Number of people died on </strong></p>
+			<p><span id="value">100</span></p>
+		</div>
+		<h2>Dr. John Snow's map of London's 1854 cholera epidemic</h2>
+		<script  type="text/javascript">
+			var dataset=[];
+			var lineNumbers=[];
+			var datasetMap=[];
+			d3.csv("streets.csv", function(data){
+				for (key in data) {
+					xArray=[]
+					lineNumbers.push(data[key].L)
+					xArray.push(data[key].L)
+					xArray.push(data[key].X)
+					xArray.push(data[key].Y)
+					dataset.push(xArray)
+				}
+				for (var i=0; i<lineNumbers.length; i++){
+					var temp=[];
+					for (var j=i; j< (+i + +lineNumbers[i]); j++){
+						temp.push(dataset[j])
+					}
+					if (temp.length!=0){
+						datasetMap.push(temp)
+					}
+				}
+				
+				var margin = {top: 20, right: 40, bottom: 30, left: 50},
+					width = 850 - margin.left - margin.right,
+					height = 600 - margin.top - margin.bottom;
+				
+				var p=220;
+				var xScale = d3.scale.linear()
+								 .domain([0, d3.max(dataset, function(d) { return d[1]; })])
+								 .range([-p*0.80, width-p*2.1]);
+
+				var yScale = d3.scale.linear()
+								 .domain([0, d3.max(dataset, function(d) { return d[2]; })])
+								 .range([height+p/1.7 ,p*1.4]);
+				
+				var svg = d3.select("#area1")
+						.append("svg")
+						.attr("width", width + margin.left + margin.right)
+						.attr("height", height+ margin.top + margin.bottom)
+						.append("g")
+						.attr("transform",
+								"translate(" + margin.left + "," + margin.top + ")")
+
+						.style("background-color:", "green");
+				for (i in datasetMap) {
+				//console.log(datasetMap[i])
+				var lineFunction = d3.svg.line()
+						.x(function (d) {
+							return xScale(d[1]);
+						})
+						.y(function (d) {
+							return yScale(d[2]);
+						})
+						.interpolate("linear");
+				svg.append("path")
+						.attr("d", lineFunction(datasetMap[i]))
+						.style("stroke-width", 2)
+						.style("stroke", "rgb(65, 112, 244)")
+						.attr("fill", "none");
+				}
+				d3.csv("pumps.csv", function(data){
+				var datasetPumps=[];	
+				for (key in data){
+					pArray=[]
+					pArray.push(data[key].X)
+					pArray.push(data[key].Y)
+					datasetPumps.push(pArray)
+				}
+				//console.log(datasetPumps)
+				svg.selectAll("circle")  
+					.data(datasetPumps)
+					.enter()
+					.append("circle")    
+					.attr("cx", function(d) {
+						return xScale(d[0]);
+					})
+					.attr("cy", function(d) {
+						return yScale(d[1]);
+					})
+					.attr("r", 5)
+					
+				svg.selectAll("text")
+					.data(datasetPumps)
+					.enter()
+					.append("text")
+				
+					.attr("x", function(d) {
+							return (xScale(d[0])+4);
+						})
+					.attr("y", function(d) {
+							return (yScale(d[1])+6);
+						})
+					.attr("font-family", "sans-serif")
+					.attr("font-size", "11px")
+					.attr("fill", "red")
+					.text("Pump");
+					
+					
+					//.attr("fill", "red")
+					/*.on("mouseover", function(){
+						d3.select(this)
+							.attr("fill","red")})
+					.on("mouseout", function(){
+						d3.select(this)
+							.attr("fill","black")});*/
+				});
+				d3.csv("deaths.age.csv", function(data){
+				var datasetDeaths=[];	
+				var datasetDeaths0=[]
+				var	datasetDeaths1=[]
+				var	datasetDeaths2=[]
+				var	datasetDeaths3=[]
+				var	datasetDeaths4=[]
+				var	datasetDeaths5=[]
+				var datasetmale = []
+				var datasetfemale = []
+				//var parseDate = d3.time.format("%d-%m").parse
+				for (key in data){
+					dArray=[]
+					dArray.push(data[key].X)
+					dArray.push(data[key].Y)
+					dArray.push(data[key].age)
+					dArray.push(data[key].sex)
+					//data[key].day=Date.parse(data[key].day)
+					//dArray.push(parseDate(data[key].day))
+					dArray.push(data[key].day)
+					datasetDeaths.push(dArray)
+					
+					if (data[key].age==0){
+						datasetDeaths0.push(dArray)
+					}
+					if (data[key].age==1){
+						datasetDeaths1.push(dArray)
+					}
+					if (data[key].age==2){
+						datasetDeaths2.push(dArray)
+					}
+					if (data[key].age==3){
+						datasetDeaths3.push(dArray)
+					}
+					if (data[key].age==4){
+						datasetDeaths4.push(dArray)
+					}
+					if (data[key].age==5){
+						datasetDeaths5.push(dArray)
+					}
+					if (data[key].sex ==0){
+						datasetmale.push(dArray)
+					}
+					if (data[key].sex==1){
+					datasetfemale.push(dArray)
+					}
+				}
+				//console.log(datasetDeaths0)
+				//console.log(datasetDeaths)
+				var data = ["All", "0-10", "11-20", "21-40", "41-60", "61-80", "> 80","male","female"];
+				var select = d3.select('body')
+							.append('select')
+							.attr('class','select')
+							.on('change',onchange);
+				var options = select.selectAll('option')
+									.data(data)
+									.enter()
+									.append('option')
+									.text(function (d) { return d; });
+				function onchange() {
+					selectValue = d3.select('select')
+									.property('value')
+					/*d3.select('body')
+						.append('p')
+						.text(selectValue + ' is the last selected option.')*/
+					var deathcircle = svg.selectAll("circle")  
+										.data(function(d) {
+											if (selectValue=="0-10"){
+												return  datasetDeaths0;
+											}
+											else if (selectValue=="11-20"){
+												return datasetDeaths1;
+											}	
+											else if (selectValue=="21-40"){
+												return  datasetDeaths2;
+											}
+											else if (selectValue=="41-60"){
+												return  datasetDeaths3;
+											}
+											else if (selectValue=="61-80"){
+												return  datasetDeaths4;
+											}
+											else if (selectValue=="> 80"){
+												return  datasetDeaths5;
+											}
+											else if (selectValue=="male"){
+												return  datasetmale;
+											}
+											else if (selectValue=="female"){
+												return  datasetfemale;
+											}
+											else {return datasetDeaths;}
+										})
+						deathcircle.exit().remove();
+						deathcircle.enter()
+									.append("circle")    
+									.attr("cx", function(d) {
+										return xScale(d[0]);
+										})
+									.attr("cy", function(d) {
+										return yScale(d[1]);
+										})
+									.attr("r", 3)
+									.attr("fill","red")
+					};
+					})
+	
+				});
+		
+	
+	//Different script
+	
+var margin = {top: 20, right: 40, bottom: 30, left: 50},
+					width = 850 - margin.left - margin.right,
+					height = 600 - margin.top - margin.bottom;
+
+
+// parse the date / time
+var	parseDate = d3.time.format("%d-%b").parse;
+//var parseTime = d3.timeParse("%d-%b");
+var formatTime = d3.time.format("%d-%B");
+
+// set the ranges
+var	x = d3.time.scale().range([0, width]);
+var	y = d3.scale.linear().range([height, 0]);
+//var x = d3.scaleTime().range([0, width]);
+//var y = d3.scaleLinear().range([height, 0]);
+
+// Define the axes
+var	xAxis = d3.svg.axis().scale(x)
+	.orient("bottom").ticks(5);
+ 
+var	yAxis = d3.svg.axis().scale(y)
+	.orient("left").ticks(5);
+
+// define the line
+var valueline = d3.svg.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.close); });
+
+var div = d3.select("#area2").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+// append the svg obgect to the body of the page
+// appends a 'group' element to 'svg'
+// moves the 'group' element to the top left margin
+var svg1 = d3.select("#area2").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// Get the data
+d3.csv("deathdays2.csv", function(error, data) {
+  if (error) throw error;
+
+  // format the data
+  data.forEach(function(d) {
+      d.date = parseDate(d.date);
+      d.close = +d.close;
+  });
+
+  // scale the range of the data
+  x.domain(d3.extent(data, function(d) { return d.date; }));
+  y.domain([0, d3.max(data, function(d) { return d.close; })]);
+
+  // add the valueline path.
+  svg1.append("path")
+     .data([data])
+     .attr("class", "line")
+     .attr("d", valueline);
+
+  // add the dots with tooltips
+  svg1.selectAll("dot")
+     .data(data)
+   .enter().append("circle")
+     .attr("r", 4)
+     .attr("cx", function(d) { return x(d.date); })
+     .attr("cy", function(d) { return y(d.close); })
+     .on("mouseover", function(d) {
+       div.transition()
+         .duration(200)
+         .style("opacity", .9);
+       div.html(formatTime(d.date) + "<br/>" + d.close)
+         .style("left", (d3.event.pageX) + "px")
+         .style("top", (d3.event.pageY - 28) + "px");
+       })
+     .on("mouseout", function(d) {
+       div.transition()
+         .duration(500)
+         .style("opacity", 0);
+       });
+
+  // add the X Axis
+  svg1.append("g")
+      .attr("transform", "translate(0," + height + ")")
+	  .attr("class","axis")
+      .call(xAxis);
+
+  // add the Y Axis
+  svg1.append("g")
+	  .attr("class","axis")
+      .call(yAxis);
+	  
+	  
+	// text label for the y axis
+  svg1.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)  
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Number of people died");
+	  
+	  
+  svg1.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 0 - ((margin.top/4)))
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .style("text-decoration", "underline")  
+        .text("Total number of people died on particular date");
+
+});
+
+
+
+
+//Different script
+
+var margin = {top: 20, right: 40, bottom: 30, left: 50},
+					width = 850 - margin.left - margin.right,
+					height = 600 - margin.top - margin.bottom;
+
+
+
+var	y0 = d3.scale.linear().range([height, 0]);
+var	y1 = d3.scale.linear().range([height, 0]);	
+
+/*var	xAxis = d3.svg.axis().scale(x)
+	.orient("bottom").ticks(5);*/
+
+var	yAxisLeft = d3.svg.axis().scale(y0)
+	.orient("left").ticks(5);
+
+var	yAxisRight = d3.svg.axis().scale(y1)
+	.orient("right").ticks(10);		
+
+var	valueline1 = d3.svg.line()
+	.x(function(d) { return x(d.date); })
+	.y(function(d) { return y0(d.male); });	
+    
+var	valueline2 = d3.svg.line()
+	.x(function(d) { return x(d.date); })
+	.y(function(d) { return y1(d.female); });
+	
+var div = d3.select("#area3").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+  
+var	svg2 = d3.select("#area3")
+	.append("svg")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom)
+	.append("g")
+		.attr("transform", 
+		      "translate(" + margin.left + "," + margin.top + ")");
+
+// Get the data
+d3.csv("mf.csv", function(error, data) {
+	data.forEach(function(d) {
+		d.date = parseDate(d.date);
+		d.male = +d.male;
+		d.female = +d.female;
+	});
+
+// Scale the range of the data
+x.domain(d3.extent(data, function(d) { return d.date; }));
+y0.domain([0, d3.max(data, function(d) { 
+	return Math.max(d.male); })]);
+y1.domain([0, d3.max(data, function(d) { 
+	return Math.max(d.female); })]);
+
+	svg2.append("path")
+		.attr("class", "line")
+		.attr("id", "blueLine")
+		.attr("d", valueline1(data));
+
+	svg2.append("path")
+		.attr("class", "line")
+		.style("stroke", "red")
+		.attr("id", "redLine")
+		.attr("d", valueline2(data));
+
+  // add the dots with tooltips
+	svg2.selectAll("dot")
+		.data(data)
+		.enter().append("circle")
+		.attr("r", 2)
+		.attr("cx", function(d) { return x(d.date); })
+		.attr("cy", function(d) { return y0(d.male); })
+		.on("mouseover", function(d) {
+			div.transition()
+				.duration(200)
+				.style("opacity", .9);
+			div.html(formatTime(d.date) + "<br/>" + d.male)
+				.style("left", (d3.event.pageX) + "px")
+				.style("top", (d3.event.pageY - 28) + "px");
+		})
+		.on("mouseout", function(d) {
+			div.transition()
+				.duration(500)
+				.style("opacity", 0);
+		});
+	   
+  // add the dots with tooltips
+	svg2.selectAll("dot")
+		.data(data)
+		.enter().append("circle")
+		.attr("r", 2)
+		.attr("cx", function(d) { return x(d.date); })
+		.attr("cy", function(d) { return y1(d.female); })
+		.on("mouseover", function(d) {
+			div.transition()
+				.duration(200)
+				.style("opacity", .9);
+			div.html(formatTime(d.date) + "<br/>" + d.female)
+				.style("left", (d3.event.pageX) + "px")
+				.style("top", (d3.event.pageY - 28) + "px");
+		})
+		.on("mouseout", function(d) {
+			div.transition()
+				.duration(500)
+				.style("opacity", 0);
+		});
+
+	svg2.append("g")	
+		.attr("class", "x axis")
+		.attr("transform", "translate(0," + height + ")")
+		.call(xAxis);
+
+// edit the Y Axis Left
+	svg2.append("g")	
+		.attr("class", "y axis")
+		.style("fill", "steelblue")
+		.attr("id", "blueAxis")
+		.call(yAxisLeft);
+
+	svg2.append("g")
+		.attr("class", "y axis")
+		.attr("transform", "translate(" + (width-2) + " ,0)")
+		.style("fill", "red")
+		.attr("id", "redAxis")
+		.call(yAxisRight);
+
+// Add the blue line title
+	svg2.append("text")
+		.attr("x", width/2)             
+		.attr("y", height/2 + margin.top)    
+		.attr("class", "legend")
+		.style("fill", "steelblue")         
+		.on("click", function(){
+			// Determine if current line is visible
+			var active   = blueLine.active ? false : true,
+				newOpacity = active ? 0 : 1;
+			// Hide or show the elements
+			d3.select("#blueLine").style("opacity", newOpacity);
+			d3.select("#blueAxis").style("opacity", newOpacity);
+		
+			// Update whether or not the elements are active
+			blueLine.active = active;
+		
+		})
+		.text("Male");
+
+// Add the red line title
+	svg2.append("text")
+		.attr("x", width/2)             
+		.attr("y", height/2)    
+		.attr("class", "legend")
+		.style("fill", "red")         
+		.on("click", function(){
+			// Determine if current line is visible
+			var active   = redLine.active ? false : true ,
+				newOpacity = active ? 0 : 1;
+			// Hide or show the elements
+			d3.select("#redLine").style("opacity", newOpacity);
+			d3.select("#redAxis").style("opacity", newOpacity);
+			// Update whether or not the elements are active
+			redLine.active = active;
+		})
+		.text("Female");
+	
+// text label for the y axis
+	svg2.append("text")
+		.attr("transform", "rotate(-90)")
+		.attr("y", 0 - margin.left)  
+		.attr("x",0 - (height / 2))
+		.attr("dy", "1em")
+		.style("text-anchor", "middle")
+		.text("Number of people died");
+	
+	svg2.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 0 - ((margin.top/4)))
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .style("text-decoration", "underline")  
+        .text("Male vs Female died on particular date");
+	
+
+});
+
+//Different script
+
+
+var margin = {top: 20, right: 40, bottom: 30, left: 50},
+					width = 850 - margin.left - margin.right,
+					height = 600 - margin.top - margin.bottom;
+
+// set the ranges
+var x = d3.scale.ordinal()
+		  .rangeRoundBands([0, width], 0.2);
+          //.range([0, width])
+          //.padding(0.1);
+var y = d3.scale.linear()
+          .range([height, 0]);
+		  
+// Define the axes
+var	xAxis = d3.svg.axis().scale(x)
+	.orient("bottom").ticks(5);
+ 
+var	yAxis = d3.svg.axis().scale(y)
+	.orient("left").ticks(5);
+          
+// append the svg object to the body of the page
+// append a 'group' element to 'svg'
+// moves the 'group' element to the top left margin
+var svg3 = d3.select("#area4").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", 
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// get the data
+d3.csv("deathdays2.csv", function(error, data) {
+  if (error) throw error;
+
+  // format the data
+  data.forEach(function(d) {
+    d.close = +d.close;
+  });
+
+  // Scale the range of the data in the domains
+  x.domain(data.map(function(d) { return d.date; }));
+  y.domain([0, d3.max(data, function(d) { return d.close; })]);
+
+  // append the rectangles for the bar chart
+  svg3.selectAll("rect")
+      .data(data)
+    .enter().append("rect")
+      //.attr("class", "bar")
+      .attr("x", function(d) { return x(d.date); })
+      .attr("width", x.rangeBand())
+      .attr("y", function(d) { return y(d.close); })
+      .attr("height", function(d) { return height - y(d.close); })
+	  .attr("fill", function(d) {
+					return "rgb(0, 0, " + (d.close * 10) + ")"})
+	  .on("mouseover", function(d) {
+
+					//Get this bar's x/y values, then augment for the tooltip
+					var xPosition = parseFloat(d3.select(this).attr("x"))/ 2;
+					var yPosition = parseFloat(d3.select(this).attr("y")) / 2 + height / 2;
+
+					//Update the tooltip position and value
+					d3.select("#tooltip")
+						.style("left", xPosition + "px")
+						.style("top", yPosition + "px")						
+						.select("#value")
+						.text([d.date,d.close]);
+			   
+					//Show the tooltip
+					d3.select("#tooltip").classed("hidden", false);
+
+			   })
+			   .on("mouseout", function() {
+			   
+					//Hide the tooltip
+					d3.select("#tooltip").classed("hidden", true);
+					
+			   });
+  // add the x Axis
+  svg3.append("g")
+      .attr("transform", "translate(0," + height + ")")
+	  .attr("class","axis")
+      .call(xAxis)
+	  .selectAll("text")
+      .style("text-anchor", "end")
+      .attr("dx", "-.45em")
+      .attr("dy", "-.35em")
+      .attr("transform", "rotate(-50)" );
+	  
+  // text label for the x axis
+  svg3.append("text")             
+      .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                           (height + margin.top + 20) + ")")
+      .attr("x",(0-(width/2)+900))
+	  .attr("y",0-(margin.bottom))
+      .style("text-anchor", "end")
+	  .attr("fill","black")
+	  .text("Date");
+	  
+  // add the y Axis
+  svg3.append("g")
+	  .attr("class","axis")
+      .call(yAxis);
+	  
+// text label for the y axis
+  svg3.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)  
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Number of people died");
+	  
+svg3.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 0 - ((margin.top / 2)-1))
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .style("text-decoration", "underline")  
+        .text("Number of people died vs Date");
+
+});
+
+
+</script>
+
+		
+	</body>
+</html>

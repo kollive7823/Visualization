@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3: An HTML div tooltip</title>
+		<script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+		<style type="text/css">
+		
+			.axis path,
+			.axis line {
+				fill: none;
+				stroke: black;
+				shape-rendering: crispEdges;
+			}
+			
+			.axis text {
+				font-family: sans-serif;
+				font-size: 11px;
+			}
+
+
+			rect:hover {
+				fill: orange;
+			}
+			
+			#tooltip {
+				position: absolute;
+				width: 200px;
+				height: auto;
+				padding: 10px;
+				background-color: white;
+				-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				-webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+				-moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+				box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+				pointer-events: none;
+			}
+			
+			#tooltip.hidden {
+				display: none;
+			}
+			
+			#tooltip p {
+				margin: 0;
+				font-family: sans-serif;
+				font-size: 16px;
+				line-height: 20px;
+			}
+
+		</style>
+	</head>
+	<body>
+	
+	
+		<div id="tooltip" class="hidden">	
+			<p><strong>Number of people died on </strong></p>
+			<p><span id="value">100</span></p>
+		</div>
+		<script type="text/javascript">
+
+			
+			//Width and height
+			var w = 800;
+			var h = 600;
+			var barPadding = 1;
+			var padding = 30;
+			var margin = {top: 20, right: 20, bottom: 50, left: 70};
+			
+			var dataset = []
+			
+			d3.csv("deathdays.csv",function(data){
+			for (key in data) {
+			numb = []
+			numb.push(data[key].X)
+			numb.push(data[key].Y)
+			dataset.push(numb)
+			
+			};
+			
+		
+			console.log(dataset)
+			console.log(dataset[0])
+			
+			
+			//console.log(dataset)
+
+			/*var xScale = d3.scale.ordinal()
+							.domain(d3.range(dataset.length))
+							.rangeRoundBands([0, w], 0.05);
+
+			/*var yScale = d3.scale.linear()
+							.domain([0, d3.max(dataset)])
+							.range([0, h]);
+			
+			//Create SVG element
+			var yScale = d3.scale.linear()
+								 .domain([0,150])
+								 .range([h,135]);
+			var xAxis = d3.svg.axis()
+							.scale(xScale)
+							.tickFormat(function(d) { return dataset[0]; })
+							.oreint("bottom");
+			var yAxis = d3.svg.axis()
+							  .scale(yScale)
+							  .orient("left")
+							  .ticks(5); */
+
+
+			var svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+			//Create bars
+			svg.selectAll("rect")
+			   .data(dataset)
+			   .enter()
+			   .append("rect")
+			   .attr("x", function(d, i) {
+			   		return i * (w / dataset.length);
+			   })
+			   .attr("y", function(d) {
+			   		return h -(d[1]*3);
+			   })
+			   .attr("width", w / dataset.length - barPadding)
+			   .attr("height", function(d) {
+			   		return d[1]*3;
+			   })
+			   .attr("fill", function(d) {
+					return "rgb(0, 0, " + (d[1] * 10) + ")";
+			   })
+			   .on("mouseover", function(d) {
+
+					//Get this bar's x/y values, then augment for the tooltip
+					var xPosition = parseFloat(d3.select(this).attr("x"))/ 2;
+					var yPosition = parseFloat(d3.select(this).attr("y")) / 2 + h / 2;
+
+					//Update the tooltip position and value
+					d3.select("#tooltip")
+						.style("left", xPosition + "px")
+						.style("top", yPosition + "px")						
+						.select("#value")
+						.text(d);
+			   
+					//Show the tooltip
+					d3.select("#tooltip").classed("hidden", false);
+
+			   })
+			   .on("mouseout", function() {
+			   
+					//Hide the tooltip
+					d3.select("#tooltip").classed("hidden", true);
+					
+			   })
+			  /* .on("click", function() {
+			   		sortBars();
+			   });
+
+			//Define sort order flag
+			var sortOrder = false;
+			
+			//Define sort function
+			var sortBars = function() {
+
+				//Flip value of sortOrder
+			   	sortOrder = !sortOrder;
+
+				svg.selectAll("rect")
+				   .sort(function(a, b) {
+				   		if (sortOrder) {
+					   		return d3.ascending(a, b);
+				   		} else {
+					   		return d3.descending(a, b);
+				   		}
+				   	})
+				   .transition()
+				   .delay(function(d, i) {
+					   return i * 50;
+				   })
+				   .duration(1000)
+				   .attr("x", function(d) {
+				   		return d[1];
+				   });*/
+				 //  });
+				   
+				   
+				   
+
+				
+				
+				
+				
+				
+				
+				
+		/*		
+		svg.selectAll("text")
+			   .data(dataset)
+			   .enter()
+			   .append("text")
+			   .text(function(d) {
+			   		return d[1];
+			   })
+			   .attr("y", function(d) {
+			   		return yScale[1];
+			   })
+			   .attr("font-family", "sans-serif")
+			   .attr("font-size", "11px")
+			   .attr("fill", "red");
+			
+			
+			
+			//Create Y axis
+			svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + padding + ",0)")
+				.call(yAxis);
+				
+			svg.append("text")             
+					.attr("transform",
+							"translate(" + (w/2) + " ," + 
+								(h + margin.top + 20) + ")")
+					.style("text-anchor", "middle")
+					.text("Date");*/
+
+				
+			});
+		</script>
+	</body>
+</html>

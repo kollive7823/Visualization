@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3 Graphic</title>
+		<style type="text/css"></style>
+		<script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+	</head>
+	<body>
+		<h2>Dr. John Snow's map of London's 1854 cholera epidemic</h2>
+		<script  type="text/javascript">
+			var dataset=[];
+			var lineNumbers=[];
+			var datasetMap=[];
+			d3.csv("streets.csv", function(data){
+				for (key in data) {
+					xArray=[]
+					lineNumbers.push(data[key].L)
+					xArray.push(data[key].L)
+					xArray.push(data[key].X)
+					xArray.push(data[key].Y)
+					dataset.push(xArray)
+				}
+				for (var i=0; i<lineNumbers.length; i++){
+					var temp=[];
+					for (var j=i; j< (+i + +lineNumbers[i]); j++){
+						temp.push(dataset[j])
+					}
+					if (temp.length!=0){
+						datasetMap.push(temp)
+					}
+				}
+				var w=1200;
+				var h=940;
+				var p=220;
+				var xScale = d3.scale.linear()
+								 .domain([0, d3.max(dataset, function(d) { return d[1]; })])
+								 .range([-p, w-p*3.3]);
+
+				var yScale = d3.scale.linear()
+								 .domain([0, d3.max(dataset, function(d) { return d[2]; })])
+								 .range([h-260,320]);
+				
+				var svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h)
+						.style("background-color:", "green");
+				for (i in datasetMap) {
+				//console.log(datasetMap[i])
+				var lineFunction = d3.svg.line()
+						.x(function (d) {
+							return xScale(d[1]);
+						})
+						.y(function (d) {
+							return yScale(d[2]);
+						})
+						.interpolate("linear");
+				svg.append("path")
+						.attr("d", lineFunction(datasetMap[i]))
+						.style("stroke-width", 3)
+						.style("stroke", "rgb(6,120,155)")
+						.attr("fill", "none");
+				}
+				d3.csv("pumps.csv", function(data){
+				var datasetPumps=[];	
+				for (key in data){
+					pArray=[]
+					pArray.push(data[key].X)
+					pArray.push(data[key].Y)
+					datasetPumps.push(pArray)
+				}
+				//console.log(datasetPumps)
+				svg.selectAll("circle")  
+					.data(datasetPumps)
+					.enter()
+					.append("circle")    
+					.attr("cx", function(d) {
+						return xScale(d[0]);
+					})
+					.attr("cy", function(d) {
+						return yScale(d[1]);
+					})
+					.attr("r", 5)
+					//.attr("fill", "red")
+					/*.on("mouseover", function(){
+						d3.select(this)
+							.attr("fill","red")})
+					.on("mouseout", function(){
+						d3.select(this)
+							.attr("fill","black")});*/
+				});
+				d3.csv("deaths.age.csv", function(data){
+				var datasetDeaths=[];	
+				var datasetDeaths0=[]
+				var	datasetDeaths1=[]
+				var	datasetDeaths2=[]
+				var	datasetDeaths3=[]
+				var	datasetDeaths4=[]
+				var	datasetDeaths5=[]
+				var datasetmale = []
+				var datasetfemale = []
+				//var parseDate = d3.time.format("%d-%m").parse
+				for (key in data){
+					dArray=[]
+					dArray.push(data[key].X)
+					dArray.push(data[key].Y)
+					dArray.push(data[key].age)
+					dArray.push(data[key].sex)
+					//data[key].day=Date.parse(data[key].day)
+					//dArray.push(parseDate(data[key].day))
+					dArray.push(data[key].day)
+					datasetDeaths.push(dArray)
+					
+					if (data[key].age==0){
+						datasetDeaths0.push(dArray)
+					}
+					if (data[key].age==1){
+						datasetDeaths1.push(dArray)
+					}
+					if (data[key].age==2){
+						datasetDeaths2.push(dArray)
+					}
+					if (data[key].age==3){
+						datasetDeaths3.push(dArray)
+					}
+					if (data[key].age==4){
+						datasetDeaths4.push(dArray)
+					}
+					if (data[key].age==5){
+						datasetDeaths5.push(dArray)
+					}
+					/*if (data[key].sex ==0){
+						datasetmale.push(dArray)
+					}
+					if (data[key].sex==1){
+					datasetfemale.push(dArray)
+					}*/	
+				}
+				//console.log(datasetDeaths0)
+				console.log(datasetDeaths)
+				var data = ["All", "0-10", "11-20", "21-40", "41-60", "61-80", "> 80"];
+				var select = d3.select('body')
+							.append('select')
+							.attr('class','select')
+							.on('change',onchange);
+				var options = select.selectAll('option')
+									.data(data)
+									.enter()
+									.append('option')
+									.text(function (d) { return d; });
+				function onchange() {
+					selectValue = d3.select('select')
+									.property('value')
+					/*d3.select('body')
+						.append('p')
+						.text(selectValue + ' is the last selected option.')*/
+					var deathcircle = svg.selectAll("circle")  
+										.data(function(d) {
+											if (selectValue=="0-10"){
+												return  dataset0;
+											}
+											else if (selectValue=="11-20"){
+												return datasetDeaths1;
+											}	
+											else if (selectValue=="21-40"){
+												return  datasetDeaths2;
+											}
+											else if (selectValue=="41-60"){
+												return  datasetDeaths3;
+											}
+											else if (selectValue=="61-80"){
+												return  datasetDeaths4;
+											}
+											else if (selectValue=="> 80"){
+												return  datasetDeaths5;
+											}
+											else {return datasetDeaths;}
+										})
+						deathcircle.exit().remove();
+						deathcircle.enter()
+									.append("circle")    
+									.attr("cx", function(d) {
+										return xScale(d[0]);
+										})
+									.attr("cy", function(d) {
+										return yScale(d[1]);
+										})
+									.attr("r", 3)
+									.attr("fill","red")
+					};
+					})
+					d3.csv("deaths.age.csv", function(data){
+				var datasetDeaths=[];	
+				var datasetDeaths0=[]
+				var	datasetDeaths1=[]
+				var	datasetDeaths2=[]
+				var	datasetDeaths3=[]
+				var	datasetDeaths4=[]
+				var	datasetDeaths5=[]
+				var datasetmale = []
+				var datasetfemale = []
+				//var parseDate = d3.time.format("%d-%m").parse
+				for (key in data){
+					dArray=[]
+					dArray.push(data[key].X)
+					dArray.push(data[key].Y)
+					dArray.push(data[key].age)
+					dArray.push(data[key].sex)
+					//data[key].day=Date.parse(data[key].day)
+					//dArray.push(parseDate(data[key].day))
+					dArray.push(data[key].day)
+					datasetDeaths.push(dArray)
+					
+					if (data[key].age==0){
+						datasetDeaths0.push(dArray)
+					}
+					if (data[key].age==1){
+						datasetDeaths1.push(dArray)
+					}
+					if (data[key].age==2){
+						datasetDeaths2.push(dArray)
+					}
+					if (data[key].age==3){
+						datasetDeaths3.push(dArray)
+					}
+					if (data[key].age==4){
+						datasetDeaths4.push(dArray)
+					}
+					if (data[key].age==5){
+						datasetDeaths5.push(dArray)
+					}
+					if (data[key].sex ==0){
+						datasetmale.push(dArray)
+					}
+					if (data[key].sex==1){
+					datasetfemale.push(dArray)
+					}	
+				}
+				//console.log(datasetDeaths0)
+				console.log(datasetDeaths)
+				var data1 = ["All","male", "female"];
+				var select = d3.select('body')
+							.append('select')
+							.attr('class','select')
+							.on('change',onchange);
+				var options = select.selectAll('option')
+									.data(data1)
+									.enter()
+									.append('option')
+									.text(function (d) { return d; });
+				function onchange() {
+					selectValue1 = d3.select('select')
+									.property('value')
+					d3.select('body')
+						.append('p')
+						.text(selectValue1 + ' is the last selected option.')
+					var deathcircle = svg.selectAll("circle")  
+										.data(function(d) {
+											if (selectValue1=="male"){
+												return  datasetmale;
+											}
+											else if (selectValue1=="female"){
+												return  datasetfemale;
+											}
+											/*else if (selectValue=="21-40"){
+												return  datasetDeaths2;
+											}
+											else if (selectValue=="41-60"){
+												return  datasetDeaths3;
+											}
+											else if (selectValue=="61-80"){
+												return  datasetDeaths4;
+											}
+											else if (selectValue=="> 80"){
+												return  datasetDeaths5;
+											}*/
+											else {return datasetDeaths;}
+										})
+						deathcircle.exit().remove();
+						deathcircle.enter()
+									.append("circle")    
+									.attr("cx", function(d) {
+										return xScale(d[0]);
+										})
+									.attr("cy", function(d) {
+										return yScale(d[1]);
+										})
+									.attr("r", 3)
+									.attr("fill","red")
+					};
+					/*var data1 = ["male","female"]
+					var select = d3.select('body')
+							.append('select')
+							.attr('class','select')
+							.on('change',onchange);
+					var options = select.selectAll('option')
+									.data(data1)
+									.enter()
+									.append('option')
+									.text(function (d) { return d; });
+					
+					function onchange() {
+					gendervalue = d3.select('select')
+									.property('value')
+					d3.select('body')
+						.append('p')
+						.text(selectValue + ' is the last selected option.')
+					var gender = svg.selectAll("circle")  
+										.data(function(d) {
+											if (gendervalue=="male"){
+												return  datasetmale;
+												}
+											if (gendervalue=="female"){
+												return datasetfemale
+												}
+											})
+							gender.exit().remove()	
+							gender.enter()
+									.append("circle")    
+									.attr("cx", function(d) {
+										return xScale(d[0]);
+										})
+									.attr("cy", function(d) {
+										return yScale(d[1]);
+										})
+									.attr("r", 3)
+									.attr("fill","red")
+						}					
+							*/					
+					/*svg.selectAll("circle")  
+					.data(datasetDeaths)
+					.enter()
+					.append("circle")    
+					.attr("cx", function(d) {
+						return xScale(d[0]);
+					})
+					.attr("cy", function(d) {
+						return yScale(d[1]);
+					})
+					.attr("r", 3)
+					.attr("fill", "red")*/
+				})
+				});
+		</script>
+	</body>
+</html>

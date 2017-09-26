@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3: An HTML div tooltip</title>
+		<script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+		<style type="text/css">
+		
+			.axis path,
+			.axis line {
+				fill: none;
+				stroke: black;
+				shape-rendering: crispEdges;
+			}
+			
+			.axis text {
+				font-family: sans-serif;
+				font-size: 11px;
+			}
+
+
+			rect:hover {
+				fill: orange;
+			}
+			
+			#tooltip {
+				position: absolute;
+				width: 200px;
+				height: auto;
+				padding: 10px;
+				background-color: white;
+				-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				-webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+				-moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+				box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+				pointer-events: none;
+			}
+			
+			#tooltip.hidden {
+				display: none;
+			}
+			
+			#tooltip p {
+				margin: 0;
+				font-family: sans-serif;
+				font-size: 16px;
+				line-height: 20px;
+			}
+
+		</style>
+	</head>
+	<body>
+	
+	
+		<div id="tooltip" class="hidden">	
+			<p><strong>Number of people died on </strong></p>
+			<p><span id="value">100</span></p>
+		</div>
+		<script type="text/javascript">
+
+			
+			//Width and height
+			var width = 1200;
+			var height = 600;
+			var barPadding = 1;
+			var padding = 100;
+			
+			
+			var dataset = []
+			
+			d3.csv("deathdays1.csv",function(data){
+			for (key in data) {
+			numb = []
+			numb.push(data[key].X)
+			numb.push(data[key].Y)
+			dataset.push(numb)
+			
+			};
+			console.log(dataset)
+			/*var data=[{"date":new Date(1854,7,19), "value": 1},
+            {"date":new Date(1854,7,20), "value": 1},
+            {"date":new Date(1854,7,21), "value": 1},   
+            {"date":new Date(1854,7,22), "value": 0},
+            {"date":new Date(1854,7,23), "value": 1},
+            {"date":new Date(1854,7,24), "value": 1},
+            {"date":new Date(1854,7,25), "value": 0},   
+            {"date":new Date(1854,7,26), "value": 1},
+            {"date":new Date(1854,7,27), "value": 1},
+			{"date":new Date(1854,7,28), "value": 1},
+            {"date":new Date(1854,7,29), "value": 1},   
+            {"date":new Date(1854,7,30), "value": 8},
+            {"date":new Date(1854,7,31), "value": 56},
+			{"date":new Date(1854,8,1), "value": 143},
+            {"date":new Date(1854,8,2), "value": 116},   
+            {"date":new Date(1854,8,3), "value": 54},
+            {"date":new Date(1854,8,4), "value": 46},
+			{"date":new Date(1854,8,5), "value": 36},
+            {"date":new Date(1854,8,6), "value": 20},   
+            {"date":new Date(1854,8,7), "value": 28},
+            {"date":new Date(1854,8,8), "value": 12},
+			{"date":new Date(1854,8,9), "value": 11},
+            {"date":new Date(1854,8,10), "value": 5},   
+            {"date":new Date(1854,8,11), "value": 5},
+            {"date":new Date(1854,8,12), "value": 1},
+			{"date":new Date(1854,8,13), "value": 3},
+            {"date":new Date(1854,8,14), "value": 0},   
+            {"date":new Date(1854,8,15), "value": 1},
+            {"date":new Date(1854,8,16), "value": 4},
+			{"date":new Date(1854,8,17), "value": 2},
+            {"date":new Date(1854,8,18), "value": 3},   
+            {"date":new Date(1854,8,19), "value": 0},
+            {"date":new Date(1854,8,20), "value": 0},
+			{"date":new Date(1854,8,21), "value": 2},
+            {"date":new Date(1854,8,22), "value": 1},   
+            {"date":new Date(1854,8,23), "value": 1},
+            {"date":new Date(1854,8,24), "value": 1},
+			{"date":new Date(1854,7,25), "value": 1},
+            {"date":new Date(1854,7,26), "value": 1},   
+            {"date":new Date(1854,7,27), "value": 1},
+            {"date":new Date(1854,7,28), "value": 0},
+            {"date":new Date(1854,7,29), "value": 0}];*/
+		  var x_domain = d3.extent(dataset, function(d) { return d[0]; }),
+			y_domain = d3.extent(dataset, function(d) { return d[1]; });	
+	
+		// display date format
+        var  date_format = d3.time.format("%d %b");
+		
+		 // define the y scale  (vertical)
+        var yScale = d3.scale.linear()
+	        .domain(y_domain).nice()   // make axis end in round number
+		.range([height - padding, padding]);   // map these to the chart height, less padding.  In this case 300 and 100
+                 //REMEMBER: y axis range has the bigger number first because the y value of zero is at the top of chart and increases as you go down.
+		    
+            
+        var xScale = d3.time.scale()
+	        .domain(x_domain)    // values between for month of january
+		    .range([padding, width - padding]);   // map these sides of the chart, in this case 100 and 600
+			
+			
+		var svg = d3.select("body")
+						.append("svg")
+						.attr("width", width)
+						.attr("height", height);
+			//Create bars
+			svg.selectAll("rect")
+			   .data(dataset)
+			   .enter()
+			   .append("rect")
+			   .attr("x", function(d, i) {
+			   		return i * (width / dataset.length);
+			   })
+			   .attr("y", function(d) {
+			   		return height -(d[1]);
+			   })
+			   .attr("width", width / dataset.length - barPadding)
+			   .attr("height", function(d) {
+			   		return (d[1]);
+			   })
+			   .attr("fill", function(d) {
+					return "rgb(0, 0, " + (d[1] * 10) + ")";
+			   })
+			   .on("mouseover", function(d) {
+
+					//Get this bar's x/y values, then augment for the tooltip
+					var xPosition = parseFloat(d3.select(this).attr("x"))/ 2;
+					var yPosition = parseFloat(d3.select(this).attr("y")) / 2 + height / 2;
+
+					//Update the tooltip position and value
+					d3.select("#tooltip")
+						.style("left", xPosition + "px")
+						.style("top", yPosition + "px")						
+						.select("#value")
+						.text(d);
+			   
+					//Show the tooltip
+					d3.select("#tooltip").classed("hidden", false);
+
+			   })
+			   .on("mouseout", function() {
+			   
+					//Hide the tooltip
+					d3.select("#tooltip").classed("hidden", true);
+					
+			   });
+			  
+			
+			
+            
+      
+        
+      
+		    
+        
+        // create an svg container
+       
+                
+				
+			/*vis.selectAll("rect")
+			   .data(data)
+			   .enter()
+			   .append("rect")
+			   .attr("x", function(d, i) {
+			   		return (i * (width / data.length));
+			   })
+			   .attr("y", function(d) {
+			   		return yScale(height);
+			   })
+			   .attr("width", width / data.length - barPadding)
+			   .attr("height", function(d) {
+			   		return d.value;
+			   })
+			   .attr("fill", function(d) {
+					return "rgb(0, 0, " + (d.value * 10) + ")";
+			   })
+       */
+	
+        // define the y axis
+        var yAxis = d3.svg.axis()
+            .orient("left")
+            .scale(yScale);
+        
+        // define the x axis
+        var xAxis = d3.svg.axis()
+            .orient("bottom")
+            .scale(xScale)
+            .tickFormat(date_format);
+            
+        // draw y axis with labels and move in from the size by the amount of padding
+        svg.append("g")
+        	.attr("class", "axis")
+            .attr("transform", "translate("+padding+",0)")
+            .call(yAxis);
+
+        // draw x axis with labels and move to the bottom of the chart area
+        svg.append("g")
+            .attr("class", "xaxis axis")  // two classes, one for css formatting, one for selection below
+            .attr("transform", "translate(0," + (height - padding) + ")")
+            .call(xAxis);
+            
+        // now rotate text on x axis
+        // solution based on idea here: https://groups.google.com/forum/?fromgroups#!topic/d3-js/heOBPQF3sAY
+        // first move the text left so no longer centered on the tick
+        // then rotate up to get 45 degrees.
+        svg.selectAll(".xaxis text")  // select all the text elements for the xaxis
+          .attr("transform", function(d) {
+             return "translate(" + this.getBBox().height*-2 + "," + this.getBBox().height + ")rotate(-45)";
+         });
+    
+        // now add titles to the axes
+        svg.append("text")
+            .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+            .attr("transform", "translate("+ (padding/2) +","+(height/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+            .text("Value");
+
+        svg.append("text")
+            .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+            .attr("transform", "translate("+ (width/2) +","+(height-(padding/3))+")")  // centre below axis
+            .text("Date");
+
+			
+
+			
+
+				
+			});
+		</script>
+	</body>
+</html>
