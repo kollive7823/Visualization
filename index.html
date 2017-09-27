@@ -10,13 +10,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
 		<style>
-	h3 {
+	h4 {
   position: absolute;
   top: 10px;
   left : 60px;
   text-align: center;
-}
-   
+} 
+	
 .select{
 		position : absolute;
 		left : 750px;
@@ -39,7 +39,7 @@
 }
 .line {
   fill: none;
-  stroke: steelblue;
+  stroke: teal;
   stroke-width: 2px;
 }
 
@@ -55,22 +55,32 @@ div.tooltip {
   border-radius: 8px;
   pointer-events: none;
 }
-
+a:link {
+    color: green; 
+    background-color: transparent; 
+    text-decoration: none;
+}
+a:link {
+    color: green; 
+    background-color: transparent; 
+    text-decoration: none;
+}
 
 		</style>
 		
 <div class="row">
 
-  <div class="col-md-7 col-lg-7" id="area1"></div> 
-  <div class="col-md-4 col-lg-4 col-md-offset-1 col-lg-offset-1" id="area2"></div>
+  <div class="col-md-8" id="area1"></div>
+  <div class="col-md-4" id="area2"></div>
   
 
 </div>
 		
 	</head>
 	<body>
-	
-		<h3>Mapping the 1854 London Cholera Outbreak</h3>	
+	<p style="font-size:20px"><a href = "http://www.screencast.com/t/LVYhLDHw9m">Video </a></p>
+	<p style="font-size:20px"><a href = "http://www.screencast.com/t/CzSaZYrPXxS">More info</a></p>
+		<h4>Mapping the 1854 London Cholera Outbreak</h4>	
 		
 		
 	<script>
@@ -133,7 +143,7 @@ var dataset=[];
 				svg.append("path")
 						.attr("d", lineFunction(datasetMap[i]))
 						.style("stroke-width", 2)
-						.style("stroke", "rgb(65, 112, 244)")
+						.style("stroke", "#67a9cf")
 						.attr("fill", "none");
 				}
 				d3.csv("pumps.csv", function(data){
@@ -285,7 +295,12 @@ var dataset=[];
 										return yScale(d[1]);
 										})
 									.attr("r", 3)
-									.attr("fill","#d8b365")
+									.attr("fill","#fdbb84")
+									//.style("fill-opacity", .2) // set the fill opacity
+									.style("stroke", "red");    // set the line colour
+									//.style("fill", "#e34a33");
+									
+									
 					};
 					})
 	
